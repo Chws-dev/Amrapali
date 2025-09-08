@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกข้อมูลผู้เรียนในชั้นเรียนแบบรายบุคคล</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
+    }
+
+    .card-shadow {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-focus:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  </style>
+</head>
+
+<body class="gradient-bg min-h-screen py-6">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <!-- Header -->
+    <div class="bg-white rounded-lg card-shadow mb-6 p-6">
+      <h1 class="text-3xl font-bold text-gray-800 text-center mb-2">ระบบบันทึกข้อมูลผู้เรียนในชั้นเรียนแบบรายบุคคล</h1>
+      <h2 class="text-xl font-semibold text-blue-600 text-center mb-4">ISRS – Individual Student Record System</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-center">
+          <label class="text-gray-700 font-medium mr-3">ของนักเรียนชั้น:</label>
+          <input type="text" id="className" class="flex-1 px-3 py-2 border border-gray-300 rounded-md input-focus" placeholder="กรอกชั้นเรียน">
+        </div>
+        <div class="flex items-center">
+          <label class="text-gray-700 font-medium mr-3">ครูประจำชั้น:</label>
+          <input type="text" id="teacherName" class="flex-1 px-3 py-2 border border-gray-300 rounded-md input-focus" placeholder="กรอกชื่อครูประจำชั้น">
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Form -->
+    <div class="bg-white rounded-lg card-shadow mb-6 p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">เพิ่มข้อมูลนักเรียน</h3>
+
+      <form id="studentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">รหัสประจำตัวนักเรียน</label>
+          <input type="text" id="studentId" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">ชื่อ-นามสกุล</label>
+          <input type="text" id="fullName" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">ชั้นเรียน</label>
+          <input type="text" id="studentClass" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">อายุ</label>
+          <input type="number" id="age" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">วันเดือนปีเกิด</label>
+          <input type="date" id="birthDate" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">ชื่อ-สกุลผู้ปกครอง</label>
+          <input type="text" id="parentName" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">เบอร์โทรติดต่อผู้ปกครอง</label>
+          <input type="tel" id="parentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" required>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-gray-700 font-medium mb-2">ที่อยู่นักเรียน</label>
+          <textarea id="address" class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus" rows="3" required></textarea>
+        </div>
+      </form>
+
+      <div class="flex flex-wrap gap-3 mt-6">
+        <button onclick="addStudent()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
+          เพิ่มข้อมูลนักเรียน
+        </button>
+        <button onclick="updateStudent()" id="updateBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors hidden">
+          แก้ไขข้อมูล
+        </button>
+        <button onclick="cancelEdit()" id="cancelBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md font-medium transition-colors hidden">
+          ยกเลิก
+        </button>
+        <button onclick="loadFromGoogleSheet()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
+          เรียกดูข้อมูลจาก Google Sheet
+        </button>
+      </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="bg-white rounded-lg card-shadow p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">รายชื่อนักเรียน</h3>
+      <div id="studentsList" class="space-y-4">
+        <!-- Students will be displayed here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let students = JSON.parse(localStorage.getItem('students')) || [];
+    let editingIndex = -1;
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7nDAbYl2OwGtyu68HFzcw4d4TD5nBCyZjvjubu5sSYuzslTr8dA4CmYyYW5S4yg_r/exec';
+
+    // Load students on page load
+    window.onload = function() {
+      displayStudents();
+    };
+
+    function addStudent() {
+      if (!validateForm()) return;
+
+      const student = getFormData();
+      students.push(student);
+      saveToLocalStorage();
+      saveToGoogleSheet(student);
+      clearForm();
+      displayStudents();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'สำเร็จ!',
+        text: 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+
+    function editStudent(index) {
+      const student = students[index];
+      editingIndex = index;
+
+      // Fill form with student data
+      document.getElementById('studentId').value = student.studentId;
+      document.getElementById('fullName').value = student.fullName;
+      document.getElementById('studentClass').value = student.studentClass;
+      document.getElementById('age').value = student.age;
+      document.getElementById('birthDate').value = student.birthDate;
+      document.getElementById('parentName').value = student.parentName;
+      document.getElementById('parentPhone').value = student.parentPhone;
+      document.getElementById('address').value = student.address;
+
+      // Show update buttons
+      document.getElementById('updateBtn').classList.remove('hidden');
+      document.getElementById('cancelBtn').classList.remove('hidden');
+
+      // Scroll to form
+      document.getElementById('studentForm').scrollIntoView({
+        behavior: 'smooth'
+      });
+
+      Swal.fire({
+        icon: 'info',
+        title: 'โหมดแก้ไข',
+        text: 'กรุณาแก้ไขข้อมูลและกดปุ่ม "แก้ไขข้อมูล"',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+
+    function updateStudent() {
+      if (!validateForm()) return;
+
+      const student = getFormData();
+      students[editingIndex] = student;
+      saveToLocalStorage();
+      saveToGoogleSheet(student, 'update');
+      clearForm();
+      cancelEdit();
+      displayStudents();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'สำเร็จ!',
+        text: 'แก้ไขข้อมูลนักเรียนเรียบร้อยแล้ว',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+
+    function cancelEdit() {
+      editingIndex = -1;
+      document.getElementById('updateBtn').classList.add('hidden');
+      document.getElementById('cancelBtn').classList.add('hidden');
+      clearForm();
+    }
+
+    function deleteStudent(index) {
+      Swal.fire({
+        title: 'ยืนยันการลบ',
+        text: `คุณต้องการลบข้อมูลของ ${students[index].fullName} หรือไม่?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          students.splice(index, 1);
+          saveToLocalStorage();
+          displayStudents();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'ลบสำเร็จ!',
+            text: 'ลบข้อมูลนักเรียนเรียบร้อยแล้ว',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      });
+    }
+
+    function validateForm() {
+      const requiredFields = ['studentId', 'fullName', 'studentClass', 'age', 'birthDate', 'parentName', 'parentPhone', 'address'];
+
+      for (let field of requiredFields) {
+        if (!document.getElementById(field).value.trim()) {
+          Swal.fire({
+            icon: 'error',
+            title: 'ข้อมูลไม่ครบถ้วน',
+            text: 'กรุณากรอกข้อมูลให้ครบทุกช่อง'
+          });
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function getFormData() {
+      return {
+        studentId: document.getElementById('studentId').value.trim(),
+        fullName: document.getElementById('fullName').value.trim(),
+        studentClass: document.getElementById('studentClass').value.trim(),
+        age: document.getElementById('age').value.trim(),
+        birthDate: document.getElementById('birthDate').value,
+        parentName: document.getElementById('parentName').value.trim(),
+        parentPhone: document.getElementById('parentPhone').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        timestamp: new Date().toLocaleString('th-TH')
+      };
+    }
+
+    function clearForm() {
+      document.getElementById('studentForm').reset();
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('students', JSON.stringify(students));
+    }
+
+    function displayStudents() {
+      const container = document.getElementById('studentsList');
+
+      if (students.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">ยังไม่มีข้อมูลนักเรียน</p>';
+        return;
+      }
+
+      container.innerHTML = students.map((student, index) => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-lg text-blue-600">${student.fullName}</h4>
+                            <p class="text-gray-600">รหัส: ${student.studentId}</p>
+                            <p class="text-gray-600">ชั้น: ${student.studentClass}</p>
+                            <p class="text-gray-600">อายุ: ${student.age} ปี</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">วันเกิด: ${new Date(student.birthDate).toLocaleDateString('th-TH')}</p>
+                            <p class="text-gray-600">ผู้ปกครอง: ${student.parentName}</p>
+                            <p class="text-gray-600">โทร: ${student.parentPhone}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-3">ที่อยู่: ${student.address}</p>
+                            <div class="flex gap-2">
+                                <button onclick="editStudent(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    แก้ไข
+                                </button>
+                                <button onclick="deleteStudent(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    ลบ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function saveToGoogleSheet(student, action = 'add') {
+      Swal.fire({
+        title: 'กำลังบันทึกข้อมูล...',
+        text: 'กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const data = {
+        action: action,
+        student: student,
+        className: document.getElementById('className').value,
+        teacherName: document.getElementById('teacherName').value
+      };
+
+      // Create JSONP callback
+      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+
+      window[callbackName] = function(response) {
+        Swal.close();
+        if (response.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'บันทึกสำเร็จ!',
+            text: 'ข้อมูลถูกบันทึกลง Google Sheet เรียบร้อยแล้ว',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง'
+          });
+        }
+        // Clean up
+        document.head.removeChild(script);
+        delete window[callbackName];
+      };
+
+      // Create script element for JSONP
+      const script = document.createElement('script');
+      const params = new URLSearchParams({
+        callback: callbackName,
+        data: JSON.stringify(data)
+      });
+      script.src = `${GOOGLE_SCRIPT_URL}?${params}`;
+      document.head.appendChild(script);
+
+      // Timeout handling
+      setTimeout(() => {
+        if (window[callbackName]) {
+          Swal.close();
+          Swal.fire({
+            icon: 'error',
+            title: 'หมดเวลา',
+            text: 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง'
+          });
+          document.head.removeChild(script);
+          delete window[callbackName];
+        }
+      }, 10000);
+    }
+
+    function loadFromGoogleSheet() {
+      Swal.fire({
+        title: 'กำลังโหลดข้อมูล...',
+        text: 'กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const callbackName = 'jsonp_callback_load_' + Math.round(100000 * Math.random());
+
+      window[callbackName] = function(response) {
+        Swal.close();
+        if (response.success && response.data) {
+          students = response.data;
+          saveToLocalStorage();
+          displayStudents();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'โหลดสำเร็จ!',
+            text: `โหลดข้อมูล ${students.length} รายการจาก Google Sheet`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({
+            icon: 'info',
+            title: 'ไม่พบข้อมูล',
+            text: 'ไม่พบข้อมูลใน Google Sheet หรือเกิดข้อผิดพลาด'
+          });
+        }
+        document.head.removeChild(script);
+        delete window[callbackName];
+      };
+
+      const script = document.createElement('script');
+      const params = new URLSearchParams({
+        callback: callbackName,
+        action: 'load'
+      });
+      script.src = `${GOOGLE_SCRIPT_URL}?${params}`;
+      document.head.appendChild(script);
+
+      setTimeout(() => {
+        if (window[callbackName]) {
+          Swal.close();
+          Swal.fire({
+            icon: 'error',
+            title: 'หมดเวลา',
+            text: 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง'
+          });
+          document.head.removeChild(script);
+          delete window[callbackName];
+        }
+      }, 10000);
+    }
+  </script>
+  <script>
+    (function() {
+      function c() {
+        var b = a.contentDocument || a.contentWindow.document;
+        if (b) {
+          var d = b.createElement('script');
+          d.innerHTML = "window.__CF$cv$params={r:'97bc89aff7657995',t:'MTc1NzMxNDUwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+          b.getElementsByTagName('head')[0].appendChild(d)
+        }
+      }
+      if (document.body) {
+        var a = document.createElement('iframe');
+        a.height = 1;
+        a.width = 1;
+        a.style.position = 'absolute';
+        a.style.top = 0;
+        a.style.left = 0;
+        a.style.border = 'none';
+        a.style.visibility = 'hidden';
+        document.body.appendChild(a);
+        if ('loading' !== document.readyState) c();
+        else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+        else {
+          var e = document.onreadystatechange || function() {};
+          document.onreadystatechange = function(b) {
+            e(b);
+            'loading' !== document.readyState && (document.onreadystatechange = e, c())
+          }
+        }
+      }
+    })();
+  </script>
+</body>
+
+</html>
